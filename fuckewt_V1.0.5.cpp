@@ -1,0 +1,75 @@
+#include<iostream>
+#include<windows.h>
+bool endf(COLORREF endx,COLORREF endy,COLORREF endz);
+int main()
+{   
+    int Classx=0;
+    int Classy=0;
+    HDC Screen=GetDC(NULL);
+    START:
+    //int i=0;
+    //std::cout<<"输入课程数\n";
+    //std::cin>>i;
+    std::cout<<"好的，请先把你的鼠标放在你要播放的第一个课程上面,然后按键盘读取鼠标坐标\n";
+    POINT pt;
+    system("pause");
+    GetCursorPos(&pt);
+    std::cout<<pt.x<<"\t"<<pt.y<<"\n";
+    Classx=pt.x;
+    Classy=pt.y;
+    std::cout<<"不用在意这几个值\n现在鼠标可以移走了\n";
+    double screenx=double(GetSystemMetrics(SM_CXSCREEN)/1920);
+    double screeny=double(GetSystemMetrics(SM_CYSCREEN)/1080);
+    COLORREF Pause=GetPixel(Screen,692*screenx,641*screeny);//检测 认真度检测 按钮上的蓝色
+    COLORREF End=GetPixel(Screen,480*screenx,575*screeny);//EWT植物人的喇叭上的深蓝色
+    COLORREF End1=GetPixel(Screen,1606*screenx,749*screeny);//EWT植物人的帽子上的棕色
+    COLORREF End2=GetPixel(Screen,828*screenx,518*screeny);//心理检测的灰色
+    COLORREF class_=GetPixel(Screen,Classx,Classy);//课程蓝色
+    while(class_==RGB(242,246,255)&&(Classy+84*screeny)<1034*screeny)
+    {   
+        Pause=GetPixel(Screen,692*screenx,641*screeny);//检测 认真度检测 按钮上的蓝色
+        End=GetPixel(Screen,480*screenx,574*screeny);//EWT植物人的喇叭上的深蓝色
+        End1=GetPixel(Screen,402*screenx,520*screeny);//EWT植物人的帽子上的棕色
+        End2=GetPixel(Screen,828*screenx,518*screeny);//心理检测的灰色
+
+        if(endf(End,End1,End2))
+        {
+            SetCursorPos(Classx,Classy+84*screeny);
+            mouse_event(MOUSEEVENTF_LEFTDOWN|MOUSEEVENTF_LEFTUP,0,0,0,0);
+            Classy=Classy+84*screeny;
+            std::cout<<"本节课程已完成\n";
+            Sleep(1024);
+            class_=GetPixel(Screen,Classx,Classy);
+        }
+        else if(Pause==RGB(46,134,255)||Pause==RGB(0,102,255))
+        {
+            //移动鼠标
+            SetCursorPos(692*screenx,641*screeny);
+            mouse_event(MOUSEEVENTF_LEFTDOWN|MOUSEEVENTF_LEFTUP,0,0,0,0);//点击
+        }
+        Sleep(2048);
+    }
+    std::cout<<"R: "<< (int)GetRValue(class_)
+            <<" G: "<< (int)GetGValue(class_)
+            <<" B: "<< (int)GetBValue(class_)
+            <<"当颜色=242,246,255时判定还有课程未完成"
+            <<(Classy+84*screeny)<<' '<<1034*screeny
+            <<"当前一个值大于后一个值时，判定本页课程已经完成";
+     //两课程之间相差84px
+    ReleaseDC(NULL,Screen);
+    Beep(700,1000);
+    std::cout<<"此页课程已经播放完毕，请下滑鼠标或者更换下一天的课程\n";
+    system("pause");
+    goto START;
+    return 0;
+
+}
+bool endf(COLORREF endx,COLORREF endy,COLORREF endz)
+{
+    if(endx==RGB(75,126,251))
+    {
+        if(endy==RGB(170,143,108)||endz==RGB(67,68,70))
+        return 1;
+    }
+    return 0;
+}
